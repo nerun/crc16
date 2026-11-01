@@ -37,7 +37,7 @@ Requirements: GNU make and a C compiler (tested with gcc 16 and clang 21).
 make              # builds build/crc16
 make check        # unit tests + CLI tests + comparison with crc16.py
                   # (the comparison is skipped when python3 is missing)
-make install      # PREFIX=/usr/local; honours DESTDIR, BINDIR and MANDIR
+make install      # PREFIX=/usr/local; honours DESTDIR, BINDIR and MANDIR (man page gzipped)
 make deb          # Debian packages in build/deb/ (needs dpkg-dev, debhelper)
 ```
 

@@ -139,11 +139,13 @@ install: all
 	install -m 755 $(BUILD)/crc16 $(DESTDIR)$(BINDIR)/crc16
 	@if [ -f man/crc16.1 ]; then \
 	  install -d $(DESTDIR)$(MANDIR)/man1; \
-	  install -m 644 man/crc16.1 $(DESTDIR)$(MANDIR)/man1/crc16.1; \
+	  gzip -9n < man/crc16.1 > $(DESTDIR)$(MANDIR)/man1/crc16.1.gz; \
+	  chmod 644 $(DESTDIR)$(MANDIR)/man1/crc16.1.gz; \
 	fi
 
 uninstall:
-	rm -f $(DESTDIR)$(BINDIR)/crc16 $(DESTDIR)$(MANDIR)/man1/crc16.1
+	rm -f $(DESTDIR)$(BINDIR)/crc16 $(DESTDIR)$(MANDIR)/man1/crc16.1.gz \
+	  $(DESTDIR)$(MANDIR)/man1/crc16.1
 
 clean:
 	rm -rf $(BUILD)
