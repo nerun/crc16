@@ -1,0 +1,410 @@
+'\" t
+.\" SPDX-License-Identifier: GPL-2.0-or-later
+.\" crc16 - compute many CRC-16 variants of a file in a single pass
+.\" Copyright (C) 2026 Daniel Dias Rodrigues <danieldiasr@gmail.com>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License along
+.\" with this program; if not, see <https://www.gnu.org/licenses/>.
+.TH CRC16 1 "November 2026" "crc16 0.1.0" "User Commands"
+.SH NAME
+crc16 \- compute many CRC\-16 variants of a file in a single pass
+.SH SYNOPSIS
+.B crc16
+.RI [ OPTION ]...\&
+.RI [ FILE ]...\&
+.br
+.B crc16 \-\-list
+.br
+.B crc16 \-\-self\-test
+.SH DESCRIPTION
+.B crc16
+reads each
+.I FILE
+once and prints the CRC\-16 of its contents for 31 standard variants, or for
+the subset chosen with
+.BR \-a .
+With no
+.IR FILE ,
+or when
+.I FILE
+is
+.BR \- ,
+it reads standard input.
+.PP
+Variants follow the Rocksoft/RevEng parameter model (width 16, polynomial,
+initial value, input and output reflection, final XOR) and the names of the
+.UR https://reveng.sourceforge.io/crc\-catalogue/16.htm
+RevEng CRC catalogue
+.UE .
+Every supported variant reflects its input and output identically, which the
+program relies on.
+.PP
+The default text output reproduces that of the reference script
+.I crc16.py
+bit for bit, except that the first line is in English.
+.SH OPTIONS
+.TP
+.BR \-a ", " \-\-algorithm " \fINAME\fP"
+Select one or more variants.
+The option may be repeated and
+.I NAME
+may be a comma\-separated list.
+Names are case\-insensitive, may be written with or without the
+.B CRC\-16/
+prefix, and may be any alias listed under
+.BR ALGORITHMS .
+Results are printed in the order given, without duplicates.
+The default is all variants.
+.TP
+.BR \-l ", " \-\-list
+List every variant with its polynomial, initial value, reflection, final XOR,
+check value and aliases, then exit.
+.TP
+.BR \-f ", " \-\-format " \fIFMT\fP"
+Output format:
+.BR text " (default), " csv ", " tsv " or " json .
+See
+.BR "OUTPUT FORMATS" .
+.TP
+.BR \-x ", " \-\-lowercase
+Print hexadecimal digits in lowercase.
+.TP
+.BR \-q ", " \-\-quiet
+Omit the
+.B Processed N bytes.
+line (text format only).
+.TP
+.BR \-j ", " \-\-jobs " \fIN\fP"
+Number of worker threads.
+.B 0
+(the default) uses one per online CPU,
+.B 1
+disables threading; the maximum is 1024.
+Threads are started only for inputs of at least 4\ MiB.
+The result never depends on this setting.
+.TP
+.B \-\-no\-mmap
+Read files with
+.BR fread (3)
+instead of mapping them into memory.
+By default, regular files of at least 4\ MiB are mapped with
+.BR mmap (2)
+on platforms that have it; pipes, standard input and smaller files are
+always read.
+.TP
+.B \-\-self\-test
+Compute every variant over the ASCII string
+.B 123456789
+and compare it with the published check value.
+Also run a 64\ KiB pseudo\-random buffer through the fast paths used on this
+machine (carry\-less multiply, worker threads as set by
+.BR \-j )
+and compare the result with a bit\-by\-bit reference.
+Prints one line per variant (only failures with
+.BR \-q )
+and exits 0 if all agree, 1 otherwise.
+.TP
+.BR \-h ", " \-\-help
+Display a usage summary and exit.
+.TP
+.BR \-V ", " \-\-version
+Display the version and the minimum ISO C standard, and exit.
+.PP
+A lone
+.B \-\-
+ends option processing.
+Long options must be spelled in full.
+.SH ALGORITHMS
+All values are in normal form, and names are shown without the
+.B CRC\-16/
+prefix.
+.B Check
+is the CRC of the ASCII string
+.BR 123456789 .
+Reflection applies to both input and output.
+.PP
+.TS
+box tab(@);
+lb1 lb1 lb1 lb1 lb1 lb1 lb
+l1 l1 l1 l1 l1 l1 lw(18).
+Name@Poly@Init@Refl@XorOut@Check@Aliases
+_
+ARC@0x8005@0x0000@yes@0x0000@0xBB3D@T{
+IBM
+.br
+LHA
+.br
+DF\-1
+T}
+CDMA2000@0xC867@0xFFFF@no@0x0000@0x4C06@T{
+
+T}
+CMS@0x8005@0xFFFF@no@0x0000@0xAEE7@T{
+
+T}
+DDS\-110@0x8005@0x800D@no@0x0000@0x9ECF@T{
+
+T}
+DECT\-R@0x0589@0x0000@no@0x0001@0x007E@T{
+
+T}
+DECT\-X@0x0589@0x0000@no@0x0000@0x007F@T{
+
+T}
+DNP@0x3D65@0x0000@yes@0xFFFF@0xEA82@T{
+
+T}
+EN\-13757@0x3D65@0x0000@no@0xFFFF@0xC2B7@T{
+
+T}
+GENIBUS@0x1021@0xFFFF@no@0xFFFF@0xD64E@T{
+EPC
+.br
+EPC\-C1G2
+.br
+I\-CODE
+T}
+GSM@0x1021@0x0000@no@0xFFFF@0xCE3C@T{
+
+T}
+IBM\-3740@0x1021@0xFFFF@no@0x0000@0x29B1@T{
+CCITT\-FALSE
+.br
+AUTOSAR
+T}
+IBM\-SDLC@0x1021@0xFFFF@yes@0xFFFF@0x906E@T{
+X\-25
+.br
+ISO\-HDLC
+.br
+ISO\-IEC\-14443\-3\-B
+T}
+ISO\-IEC\-14443\-3\-A@0x1021@0xC6C6@yes@0x0000@0xBF05@T{
+
+T}
+KERMIT@0x1021@0x0000@yes@0x0000@0x2189@T{
+V\-41\-LSB
+.br
+BLUETOOTH
+T}
+LJ1200@0x6F63@0x0000@no@0x0000@0xBDF4@T{
+
+T}
+M17@0x5935@0xFFFF@no@0x0000@0x772B@T{
+
+T}
+MAXIM\-DOW@0x8005@0x0000@yes@0xFFFF@0x44C2@T{
+MAXIM
+T}
+MCRF4XX@0x1021@0xFFFF@yes@0x0000@0x6F91@T{
+
+T}
+MODBUS@0x8005@0xFFFF@yes@0x0000@0x4B37@T{
+
+T}
+NRSC\-5@0x080B@0xFFFF@yes@0x0000@0xA066@T{
+
+T}
+OPENSAFETY\-A@0x5935@0x0000@no@0x0000@0x5D38@T{
+
+T}
+OPENSAFETY\-B@0x755B@0x0000@no@0x0000@0x20FE@T{
+
+T}
+PROFIBUS@0x1DCF@0xFFFF@no@0xFFFF@0xA819@T{
+IEC\-61158\-2
+T}
+RIELLO@0x1021@0xB2AA@yes@0x0000@0x63D0@T{
+
+T}
+SPI\-FUJITSU@0x1021@0x1D0F@no@0x0000@0xE5CC@T{
+AUG\-CCITT
+T}
+T10\-DIF@0x8BB7@0x0000@no@0x0000@0xD0DB@T{
+
+T}
+TELEDISK@0xA097@0x0000@no@0x0000@0x0FB3@T{
+
+T}
+TMS37157@0x1021@0x89EC@yes@0x0000@0x26B1@T{
+
+T}
+UMTS@0x8005@0x0000@no@0x0000@0xFEE8@T{
+BUYPASS
+.br
+VERIFONE
+T}
+USB@0x8005@0xFFFF@yes@0xFFFF@0xB4C8@T{
+
+T}
+XMODEM@0x1021@0x0000@no@0x0000@0x31C3@T{
+ACORN
+.br
+LTE
+T}
+.TE
+.PP
+The empty input yields the initial value (bit\-reflected for reflected
+variants) XOR the final XOR value.
+.SH OUTPUT FORMATS
+.TP
+.B text
+For one input, the line
+.B Processed N bytes.
+followed by one line per variant: the name padded to 25 columns, a colon, a
+space and four hexadecimal digits.
+With several inputs each block is headed by
+.B ==> FILE <==
+and separated from the next by an empty line.
+.TP
+.B csv
+Header line
+.BR file,bytes,algorithm,crc ,
+then one row per file and variant.
+Fields containing commas, quotes or newlines are quoted.
+.TP
+.B tsv
+The same columns, separated by tabs; nothing is quoted.
+.TP
+.B json
+An array with one object per file, for example:
+.RS
+.PP
+.EX
+[
+  {"file": "a.bin", "bytes": 9, "crc": {"CRC\-16/ARC": "BB3D"}}
+]
+.EE
+.RE
+.PP
+Standard input is named
+.B \-
+in the structured formats.
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B 1
+At least one input could not be read; the remaining inputs are still
+processed.
+Also returned by
+.B \-\-self\-test
+on a mismatch and on output errors.
+.TP
+.B 2
+Usage error (unknown option or algorithm, missing or invalid argument).
+.PP
+Errors are written to standard error as
+.BR "crc16: FILE: message" .
+.SH EXAMPLES
+All variants of a file:
+.PP
+.RS
+.EX
+$ crc16 firmware.bin
+.EE
+.RE
+.PP
+Only the Modbus and X\-25 CRCs, without the byte count, in lowercase:
+.PP
+.RS
+.EX
+$ crc16 \-q \-x \-a modbus,x\-25 firmware.bin
+.EE
+.RE
+.PP
+CSV for several files, single\-threaded:
+.PP
+.RS
+.EX
+$ crc16 \-j 1 \-f csv \-a arc a.bin b.bin
+.EE
+.RE
+.PP
+From a pipe:
+.PP
+.RS
+.EX
+$ zcat image.gz | crc16 \-a xmodem
+.EE
+.RE
+.SH STANDARDS
+The program is written in portable ISO C.
+The minimum standard is
+.B C11
+(for
+.IR <threads.h> ).
+Built with
+.B \-DCRC16_NO_THREADS
+or on a system without
+.IR <threads.h> ,
+it needs only
+.B C99
+and runs single\-threaded.
+Reading regular files through
+.BR mmap (2)
+and counting CPUs use POSIX interfaces when available, with ISO fallbacks.
+The x86\-64 carry\-less multiply path is selected at run time from the CPU
+features and is optional; build with
+.B make SIMD=0
+for the portable code only.
+.SH NOTES
+.SS How it is fast
+Variants that share the polynomial and reflection differ only in the initial
+value and final XOR, and a CRC register is linear over GF(2).
+The 31 variants therefore collapse into 15 groups, each needing one pass over
+the data plus a cheap per\-variant fix\-up at the end.
+Each pass uses slicing\-by\-8 tables or, on x86\-64 CPUs with PCLMULQDQ,
+carry\-less multiply folding.
+Large inputs are cut into pieces that worker threads process independently
+and merge with the CRC combine identity.
+.SS Omitted variants
+The following are deliberately not implemented:
+Fletcher (not a CRC), OpenPGP and CAN\-FD (not CRC\-16), SICK (a different
+algorithm), and EFI, G\-3, EVEREST and ADCCP (no validated specification).
+.SH BUGS
+A file that is truncated by another process while it is being mapped can
+terminate the program with
+.BR SIGBUS ;
+use
+.B \-\-no\-mmap
+to avoid this.
+.PP
+File names are written byte for byte: TSV output does not escape tabs or
+newlines in them, and JSON output is valid only for UTF\-8 names.
+.PP
+.B \-j 0
+counts the online CPUs and ignores CPU affinity masks and container quotas.
+.PP
+The names are those of the RevEng catalogue and its aliases; some protocols
+add framing (for example Bluetooth or DF\-1) that is outside the CRC itself.
+.SH AUTHORS
+Written by Daniel Dias Rodrigues
+.RI < danieldiasr@gmail.com >.
+.PP
+Speed techniques follow Mark Adler's slicing tables (as used by zlib and
+crcspeed by Matt Stancliff) and Intel's carry\-less multiply folding paper;
+the code is original.
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel Dias Rodrigues.
+License GPLv2+: GNU GPL version 2 or later
+.UR https://gnu.org/licenses/gpl\-2.0.html
+.UE .
+.br
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+.SH SEE ALSO
+.BR cksum (1),
+.BR sha256sum (1),
+.BR mmap (2)
