@@ -41,6 +41,8 @@ PLAN.md               original work plan (design record)
 LICENSE               GPL-2.0 text
 crc16.py              reference implementation (do not modify)
 man/crc16.1           man page (man macros + tbl)
+debian/               Debian packaging (3.0 (quilt), debhelper-compat 14)
+DEBIAN.md             how the Debian packages are built and maintained
 src/crc16.h           public types and API
 src/variants.c        variant table, aliases, name lookup
 src/engine.c          Sarwate + slicing-by-8 (normal/reflected), bitwise reference
@@ -94,6 +96,7 @@ make tsan            # ThreadSanitizer (pthread shim, -DCRC16_TSAN_PTHREAD)
 make std-check       # -std=c99/c11/c17/c23 -pedantic-errors -Werror
 make man             # groff lint (and mandoc, if installed)
 make bench           # in-memory throughput
+make deb             # .deb + source package in build/deb/
 ```
 
 Before declaring any change done, run all of the following, with zero
@@ -104,6 +107,10 @@ warnings and zero failures:
 - `make BUILD=build/clang CC=clang EXTRA_CFLAGS=-Werror check`
 - `make BUILD=build/nt STD=c99 check` (the single-threaded build)
 - `make man` whenever `man/crc16.1` changes
+- `make deb` and `lintian --pedantic build/deb/*.changes` whenever `debian/`,
+  the install rules or the version change (only `initial-upload-closes-no-bugs`
+  is expected). A release bumps `CRC16_VERSION`, the man page and a new
+  `debian/changelog` entry together; `make deb` refuses a version mismatch.
 
 Every behaviour change needs a test: a unit test in `tests/test_main.c` for
 library code, or a case in `tests/ref_compare.sh` for the CLI. Mutation

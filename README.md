@@ -38,6 +38,7 @@ make              # builds build/crc16
 make check        # unit tests + CLI tests + comparison with crc16.py
                   # (the comparison is skipped when python3 is missing)
 make install      # PREFIX=/usr/local; honours DESTDIR, BINDIR and MANDIR
+make deb          # Debian packages in build/deb/ (needs dpkg-dev, debhelper)
 ```
 
 Useful variables: `CC`, `CFLAGS`, `STD` (default `c23`), `SIMD=0` (portable
@@ -47,6 +48,11 @@ build).
 Other targets: `bench`, `man` (lints the man page with groff), `std-check`,
 `sanitize` (ASan + UBSan), `tsan` (ThreadSanitizer), `check-portable`,
 `check-generic`, `clean`, `uninstall`. All build output goes to `build/`.
+
+`make deb` builds the binary package (plus `-dbgsym`) and the source package
+from the `debian/` directory, in a scratch copy under `build/deb/`. The
+upstream version in `debian/changelog` must match `CRC16_VERSION`. Pass
+`DEB_OPTS=-b` for a binary-only build or `DEB_OPTS=` to sign the results.
 
 ### Minimum ISO C standard
 

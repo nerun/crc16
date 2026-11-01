@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+# C11 is the minimum standard of the project and builds with any compiler
+# the archive ships; the default (C23) needs a recent GCC or Clang.
+export STD = c11
+
+%:
+	dh $@ --without=single-binary
+
+override_dh_auto_install:
+	dh_auto_install --destdir=debian/tmp -- PREFIX=/usr

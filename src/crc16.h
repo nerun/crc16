@@ -28,7 +28,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define CRC16_VERSION "0.1.0"
+#define CRC16_VERSION "1.0.0"
 #define CRC16_MIN_ISO_C "C11 (C99 when built with -DCRC16_NO_THREADS)"
 
 #define CRC16_NOT_FOUND ((size_t)-1)

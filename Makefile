@@ -27,6 +27,8 @@ DESTDIR  ?=
 BINDIR   ?= $(PREFIX)/bin
 MANDIR   ?= $(PREFIX)/share/man
 BUILD    ?= build
+DEB_DIR  ?= $(BUILD)/deb
+DEB_OPTS ?= -us -uc
 SIMD     ?= 1
 
 WARN     := -Wall -Wextra -Wpedantic -Wconversion -Wshadow \
@@ -43,7 +45,7 @@ MAIN_OBJ := $(BUILD)/obj/main.o
 TEST_OBJ := $(BUILD)/obj/test_main.o
 BENCH_OBJ := $(BUILD)/obj/bench.o
 
-.PHONY: all clean check check-portable check-generic tsan bench install uninstall man std-check sanitize
+.PHONY: all clean check check-portable check-generic tsan bench install uninstall man std-check sanitize deb
 
 all: $(BUILD)/crc16
 
@@ -106,6 +108,31 @@ sanitize:
 	$(MAKE) BUILD=$(BUILD)/san CFLAGS="-O1 -g -fno-omit-frame-pointer" \
 	  EXTRA_CFLAGS="-Werror -fsanitize=address,undefined -fno-sanitize-recover=all" \
 	  LDFLAGS="-fsanitize=address,undefined" check
+
+# Build Debian packages (.deb with its -dbgsym, source package) in $(DEB_DIR).
+# The orig tarball is made from this tree minus debian/ and build output;
+# dpkg-buildpackage runs in a scratch copy, so the source tree stays clean.
+# DEB_OPTS is passed to dpkg-buildpackage (default: unsigned; e.g. "-b").
+deb:
+	@command -v dpkg-buildpackage >/dev/null 2>&1 || \
+	  { echo "make deb: dpkg-buildpackage not found (install dpkg-dev)" >&2; exit 1; }
+	@set -e; \
+	full=$$(dpkg-parsechangelog -S Version); \
+	up=$${full%-*}; \
+	hdr=$$(sed -n 's/^#define CRC16_VERSION "\(.*\)"/\1/p' src/crc16.h); \
+	if [ "$$up" != "$$hdr" ]; then \
+	  echo "make deb: debian/changelog upstream version ($$up) != CRC16_VERSION ($$hdr)" >&2; exit 1; \
+	fi; \
+	src=$(DEB_DIR)/crc16-$$up; \
+	rm -rf $(DEB_DIR); mkdir -p $$src; \
+	tar --exclude=./build --exclude=./$(BUILD) --exclude=./.git --exclude=./debian -cf - . | \
+	  tar -C $$src -xf -; \
+	tar --sort=name --owner=0 --group=0 --numeric-owner \
+	  --mtime="@$$(dpkg-parsechangelog -S Timestamp)" \
+	  -C $(DEB_DIR) -cJf $(DEB_DIR)/crc16_$$up.orig.tar.xz crc16-$$up; \
+	cp -a debian $$src/debian; \
+	(cd $$src && dpkg-buildpackage $(DEB_OPTS)); \
+	echo "make deb: packages are in $(DEB_DIR)"; ls $(DEB_DIR)/*.deb
 
 install: all
 	install -d $(DESTDIR)$(BINDIR)

@@ -1,0 +1,21 @@
+Source: crc16
+Section: utils
+Maintainer: Daniel Dias Rodrigues <danieldiasr@gmail.com>
+Standards-Version: 4.7.4
+Build-Depends:
+ debhelper-compat (= 14),
+ dpkg-build-api (= 1),
+Homepage: https://github.com/nerun/crc16
+Vcs-Git: https://github.com/nerun/crc16.git
+Vcs-Browser: https://github.com/nerun/crc16
+
+Package: crc16
+Architecture: any
+Description: compute many CRC-16 variants of files in a single pass
+ crc16 calculates 31 CRC-16 variants of the Rocksoft/RevEng model, with
+ their common aliases (MODBUS, X-25, XMODEM, CCITT-FALSE and others), for
+ one or more files or standard input, reading the data only once.
+ .
+ Results can be printed as plain text, CSV, TSV or JSON. The program is
+ multithreaded, uses carry-less multiply (PCLMULQDQ) folding on x86-64 CPUs
+ that support it and falls back to portable slicing-by-8 code elsewhere.

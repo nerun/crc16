@@ -1,1 +1,14 @@
 build/
+
+# Debian build leftovers inside debian/. They should never appear here:
+# "make deb" runs dpkg-buildpackage in a scratch copy under build/deb/.
+# If these files show up, dpkg-buildpackage or debuild was probably run
+# in the project root by mistake. These entries only prevent accidental
+# commits; run "debian/rules clean" (or use "make deb") to fix the cause.
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/*.substvars
+debian/*.debhelper.log
+debian/tmp/
+debian/crc16/
